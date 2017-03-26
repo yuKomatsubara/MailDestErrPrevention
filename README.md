@@ -1,1 +1,3 @@
 # MailDestErrPrevention
+
+このレポジトリはGitHubの練習用でもあるので、色々汚いかも知れませんが気にしないでください。
