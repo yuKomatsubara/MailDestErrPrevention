@@ -11,7 +11,7 @@ using System.Security;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Yu Komatsubara")]
 [assembly: AssemblyProduct("メール誤送信防止アドイン")]
-[assembly: AssemblyCopyright("Copyright ©  2017.03.26 Yu Komatsubara")]
+[assembly: AssemblyCopyright("Copyright ©  2017.03.28 Yu Komatsubara")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -33,6 +33,6 @@ using System.Security;
 // すべての値を指定するか、以下のように '*' を使ってビルドおよびリビジョン番号を
 // 既定値にすることができます。
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.6.0.0")]
-[assembly: AssemblyFileVersion("0.6.0.0")]
+[assembly: AssemblyVersion("0.7.0.0")]
+[assembly: AssemblyFileVersion("0.7.0.0")]
 
