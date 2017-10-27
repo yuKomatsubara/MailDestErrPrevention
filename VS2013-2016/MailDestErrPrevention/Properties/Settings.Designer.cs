@@ -34,5 +34,27 @@ namespace MailDestErrPrevention.Properties {
                 this["EnableConfirmationSkip"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Generic.List<System.Collections.Generic.List<System.String>> InternalDomainList {
+            get {
+                return ((global::System.Collections.Generic.List<System.Collections.Generic.List<System.String>>)(this["InternalDomainList"]));
+            }
+            set {
+                this["InternalDomainList"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Generic.List<System.Collections.Generic.List<System.String>> KnownDomainList {
+            get {
+                return ((global::System.Collections.Generic.List<System.Collections.Generic.List<System.String>>)(this["KnownDomainList"]));
+            }
+            set {
+                this["KnownDomainList"] = value;
+            }
+        }
     }
 }

@@ -1,33 +1,33 @@
-﻿namespace confirmDialog
+﻿namespace MailDestErrPrevention
 {
-    partial class confirmDialog
-    {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
-        private System.ComponentModel.IContainer components = null;
+	partial class confirmDialog
+	{
+		/// <summary>
+		/// Required designer variable.
+		/// </summary>
+		private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+		/// <summary>
+		/// Clean up any resources being used.
+		/// </summary>
+		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing && (components != null))
+			{
+				components.Dispose();
+			}
+			base.Dispose(disposing);
+		}
 
-        #region Windows Form Designer generated code
+		#region Windows Form Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
-        private void InitializeComponent()
-        {
+		/// <summary>
+		/// Required method for Designer support - do not modify
+		/// the contents of this method with the code editor.
+		/// </summary>
+		private void InitializeComponent()
+		{
 			this.label1 = new System.Windows.Forms.Label();
 			this.listBoxToDomainList = new System.Windows.Forms.ListBox();
 			this.checkBoxConfirm = new System.Windows.Forms.CheckBox();
@@ -38,6 +38,7 @@
 			this.label2 = new System.Windows.Forms.Label();
 			this.label3 = new System.Windows.Forms.Label();
 			this.label4 = new System.Windows.Forms.Label();
+			this.buttonSettingChange = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// label1
@@ -52,13 +53,14 @@
 			// 
 			// listBoxToDomainList
 			// 
-			this.listBoxToDomainList.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.listBoxToDomainList.Font = new System.Drawing.Font("Meiryo UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.listBoxToDomainList.FormattingEnabled = true;
-			this.listBoxToDomainList.ItemHeight = 15;
+			this.listBoxToDomainList.ItemHeight = 19;
 			this.listBoxToDomainList.Location = new System.Drawing.Point(19, 75);
 			this.listBoxToDomainList.Margin = new System.Windows.Forms.Padding(10, 3, 10, 3);
 			this.listBoxToDomainList.Name = "listBoxToDomainList";
-			this.listBoxToDomainList.Size = new System.Drawing.Size(302, 169);
+			this.listBoxToDomainList.SelectionMode = System.Windows.Forms.SelectionMode.None;
+			this.listBoxToDomainList.Size = new System.Drawing.Size(302, 156);
 			this.listBoxToDomainList.TabIndex = 1;
 			this.listBoxToDomainList.UseTabStops = false;
 			// 
@@ -78,9 +80,9 @@
 			// 
 			this.buttonSend.Enabled = false;
 			this.buttonSend.Font = new System.Drawing.Font("MS UI Gothic", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-			this.buttonSend.Location = new System.Drawing.Point(41, 284);
+			this.buttonSend.Location = new System.Drawing.Point(41, 299);
 			this.buttonSend.Name = "buttonSend";
-			this.buttonSend.Size = new System.Drawing.Size(103, 44);
+			this.buttonSend.Size = new System.Drawing.Size(103, 29);
 			this.buttonSend.TabIndex = 3;
 			this.buttonSend.Text = "送信";
 			this.buttonSend.UseVisualStyleBackColor = true;
@@ -89,9 +91,9 @@
 			// buttonCancel
 			// 
 			this.buttonCancel.Font = new System.Drawing.Font("MS UI Gothic", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-			this.buttonCancel.Location = new System.Drawing.Point(804, 284);
+			this.buttonCancel.Location = new System.Drawing.Point(819, 299);
 			this.buttonCancel.Name = "buttonCancel";
-			this.buttonCancel.Size = new System.Drawing.Size(126, 44);
+			this.buttonCancel.Size = new System.Drawing.Size(126, 29);
 			this.buttonCancel.TabIndex = 4;
 			this.buttonCancel.Text = "キャンセル";
 			this.buttonCancel.UseVisualStyleBackColor = true;
@@ -99,25 +101,27 @@
 			// 
 			// listBoxCcDomainList
 			// 
-			this.listBoxCcDomainList.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.listBoxCcDomainList.Font = new System.Drawing.Font("Meiryo UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.listBoxCcDomainList.FormattingEnabled = true;
-			this.listBoxCcDomainList.ItemHeight = 15;
+			this.listBoxCcDomainList.ItemHeight = 19;
 			this.listBoxCcDomainList.Location = new System.Drawing.Point(341, 75);
 			this.listBoxCcDomainList.Margin = new System.Windows.Forms.Padding(10, 3, 10, 3);
 			this.listBoxCcDomainList.Name = "listBoxCcDomainList";
-			this.listBoxCcDomainList.Size = new System.Drawing.Size(302, 169);
+			this.listBoxCcDomainList.SelectionMode = System.Windows.Forms.SelectionMode.None;
+			this.listBoxCcDomainList.Size = new System.Drawing.Size(302, 156);
 			this.listBoxCcDomainList.TabIndex = 1;
 			this.listBoxCcDomainList.UseTabStops = false;
 			// 
 			// listBoxBccDomainList
 			// 
-			this.listBoxBccDomainList.Font = new System.Drawing.Font("MS UI Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.listBoxBccDomainList.Font = new System.Drawing.Font("Meiryo UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.listBoxBccDomainList.FormattingEnabled = true;
-			this.listBoxBccDomainList.ItemHeight = 15;
+			this.listBoxBccDomainList.ItemHeight = 19;
 			this.listBoxBccDomainList.Location = new System.Drawing.Point(663, 75);
 			this.listBoxBccDomainList.Margin = new System.Windows.Forms.Padding(10, 3, 10, 3);
 			this.listBoxBccDomainList.Name = "listBoxBccDomainList";
-			this.listBoxBccDomainList.Size = new System.Drawing.Size(302, 169);
+			this.listBoxBccDomainList.SelectionMode = System.Windows.Forms.SelectionMode.None;
+			this.listBoxBccDomainList.Size = new System.Drawing.Size(302, 156);
 			this.listBoxBccDomainList.TabIndex = 1;
 			this.listBoxBccDomainList.UseTabStops = false;
 			// 
@@ -151,11 +155,22 @@
 			this.label4.TabIndex = 0;
 			this.label4.Text = "Bcc";
 			// 
+			// buttonSettingChange
+			// 
+			this.buttonSettingChange.Image = global::MailDestErrPrevention.Properties.Resources.gear_30x30;
+			this.buttonSettingChange.Location = new System.Drawing.Point(910, 12);
+			this.buttonSettingChange.Name = "buttonSettingChange";
+			this.buttonSettingChange.Size = new System.Drawing.Size(55, 41);
+			this.buttonSettingChange.TabIndex = 5;
+			this.buttonSettingChange.UseVisualStyleBackColor = true;
+			this.buttonSettingChange.Click += new System.EventHandler(this.buttonSettingChange_Click);
+			// 
 			// confirmDialog
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(984, 338);
+			this.Controls.Add(this.buttonSettingChange);
 			this.Controls.Add(this.buttonCancel);
 			this.Controls.Add(this.buttonSend);
 			this.Controls.Add(this.checkBoxConfirm);
@@ -172,19 +187,20 @@
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
-        }
+		}
 
-        #endregion
+		#endregion
 
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ListBox listBoxToDomainList;
-        private System.Windows.Forms.CheckBox checkBoxConfirm;
-        private System.Windows.Forms.Button buttonSend;
-        internal System.Windows.Forms.Button buttonCancel;
+		private System.Windows.Forms.Label label1;
+		private System.Windows.Forms.ListBox listBoxToDomainList;
+		private System.Windows.Forms.CheckBox checkBoxConfirm;
+		private System.Windows.Forms.Button buttonSend;
+		internal System.Windows.Forms.Button buttonCancel;
 		private System.Windows.Forms.ListBox listBoxCcDomainList;
 		private System.Windows.Forms.ListBox listBoxBccDomainList;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.Label label4;
+		private System.Windows.Forms.Button buttonSettingChange;
 	}
 }

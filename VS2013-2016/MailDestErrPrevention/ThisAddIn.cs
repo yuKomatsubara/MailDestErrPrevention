@@ -10,127 +10,119 @@ using System.Windows.Forms;
 using Outlook = Microsoft.Office.Interop.Outlook;
 using Office = Microsoft.Office.Core;
 using Microsoft.Office.Interop.Outlook;
-using confirmDialog;
 
 
 namespace MailDestErrPrevention
 {
 	public partial class ThisAddIn
 	{
-		//        Outlook.Inspectors inspectors;
 		private void ThisAddIn_Startup(object sender, System.EventArgs e)
 		{
-			//            inspectors = this.Application.Inspectors;
-			//            inspectors.NewInspector +=
-			//                new Microsoft.Office.Interop.Outlook.InspectorsEvents_NewInspectorEventHandler(Inspectors_NewInspector);
-
 			Application.ItemSend += Application_ItemSend;
-
-			Application.OptionsPagesAdd += Application_OptionsPagesAdd;
-		}
-
-		void Application_OptionsPagesAdd(Outlook.PropertyPages Pages)
-		{
-			Pages.Add(new MyPropPage(), "General");
-			// 複数ページあれば、さらに Add します。
 		}
 
 		private void Application_ItemSend(object Item, ref bool Cancel)
 		{
-
 			// 変数定義
-			string currentAddress, currentDomain;
-			ArrayList targetDomainList;
-			int currentType;
-			confirmDialog.confirmDialog cnfDialog = new confirmDialog.confirmDialog();
+			string currentAddress;
+			List<string> DestinationAddressList;
 			bool confirmFlag;
+			confirmDialog cnfDialog = new confirmDialog();
 
-			Outlook.MailItem CurrentMail = Item as Outlook.MailItem;
 
-
-			foreach (Outlook.Recipient currentRecipient in CurrentMail.Recipients)
+			if (true)
+//			if (Item.GetType() is Outlook.MailItem)
 			{
-				// 各宛先についてアドレス（currentAddress）を取得し、currentDomainとしてドメインを分離する。
-				currentAddress = GetRecipientAddress(currentRecipient);
-				currentDomain = currentAddress.Split('@')[1];
+				Outlook.MailItem CurrentMail = Item as Outlook.MailItem;
 
-				currentType = currentRecipient.Type;
-				// MailItem.Typeの実体はOlMailRecipientTypeであり以下の通り対応する。
-				//      olOriginator    0
-				//      olTo			1
-				//		olBCC			3
-				//      olCC			2
-
-
-				switch (currentType)
+				foreach (Outlook.Recipient currentRecipient in CurrentMail.Recipients)
 				{
-					case 1:
-						targetDomainList = cnfDialog.ToDomainList;
-						break;
-					case 2:
-						targetDomainList = cnfDialog.CcDomainList;
-						break;
-					case 3:
-						targetDomainList = cnfDialog.BccDomainList;
-						break;
+					// 各宛先についてアドレス（currentAddress）を取得する。
+					currentAddress = GetRecipientAddress(currentRecipient);
 
-					case 0:
-					default:
-						// 送信者アドレスについては何も処理を行わない。
-						continue;
-				}
-
-				// DestDomainsにcurrentDomainが含まれていない場合、末尾に追加する。
-				if (targetDomainList.Contains(currentDomain) == false)
-				{
-					targetDomainList.Add(currentDomain);
-				}
-			}
-
-#if _DEBUG_
-			MessageBox.Show("[Debug] Finished to gather addresses.");
-#endif
-
-			confirmFlag = true;
-
-			if ((cnfDialog.ToDomainList.Count == 1) && (cnfDialog.ToDomainList.Contains("advanet.jp") == true))
-			{
-				if ((cnfDialog.CcDomainList.Count == 0) ||
-					((cnfDialog.CcDomainList.Count == 1) && (cnfDialog.CcDomainList.Contains("advanet.jp"))))
-				{
-					if ((cnfDialog.BccDomainList.Count == 0) ||
-						((cnfDialog.BccDomainList.Count == 1) && (cnfDialog.BccDomainList.Contains("advanet.jp"))))
+					// アドレスごとに宛先のタイプを判定し、「DestinationAddressList」が示すオブジェクトを切りかえる。
+					// MailItem.Typeの実体はOlMailRecipientTypeであり以下の通り対応する。
+					//      olOriginator    0
+					//      olTo			1
+					//		olBCC			3
+					//      olCC			2
+					switch (currentRecipient.Type)
 					{
-						if (Properties.Settings.Default.EnableConfirmationSkip)
-						{
-#if _DEBUG_
-							MessageBox.Show("[Debug] All destinations are 'advanet.jp'\nand EnableConfirmatinSkip is TRUE.\nConfirmation dialog will be skipped.");
-#endif
-							confirmFlag = false;
-						}
-						else
-						{
-#if _DEBUG_
-							MessageBox.Show("[Debug] All destinations are 'advanet.jp'\nbut EnableConfirmatinSkip is FALSE.");
-#endif
-						}
-					}
-				}
-			}
+						case 1:
+							DestinationAddressList = cnfDialog.ToAddressList;
+							break;
+						case 2:
+							DestinationAddressList = cnfDialog.CcAddressList;
+							break;
+						case 3:
+							DestinationAddressList = cnfDialog.BccAddressList;
+							break;
 
-			if (!confirmFlag)
-			{
-				// advanet.jpしか含まない場合は確認ダイアログをスキップする機能。
+						case 0:
+						default:
+							// 送信者アドレスについては何も処理を行わない。
+							continue;
+					}
+
+					DestinationAddressList.Add(currentAddress);
+				}
+
+#if _DEBUG_
+				MessageBox.Show("[Debug] Finished to gather addresses.");
+#endif
+
+
+				InitProperties();
+
+				cnfDialog.ToDomainList = ExtractDomains(cnfDialog.ToAddressList);
+				cnfDialog.CcDomainList = ExtractDomains(cnfDialog.CcAddressList);
+				cnfDialog.BccDomainList = ExtractDomains(cnfDialog.BccAddressList);
+
+
+
+				// 宛先に社内ドメインしか含まないかつ、設定で確認スキップを許可している場合は確認ダイアログをスキップする機能。
 				// ただし、単純なうっかり送信防止機能（例えば、他のウインドウをクリックした積もりで「送信」押しちゃうとか）として
 				// 使いたいという要望も想定し、最終的には外部ファイルを読み込んでEnable/Disableを切り替えられるようにする。
 
-				Cancel = false;
-			}
-			else
-			{
-#if _DEBUG_
-				MessageBox.Show("[Debug] Address list includes external domain\nor EnableConfirmatinSkip is FALSE.\nConfirmation dialog will be shown.");
-#endif
+				confirmFlag = true;
+
+				if (!HasExternalDomain(cnfDialog.ToDomainList) &&
+					!HasExternalDomain(cnfDialog.CcDomainList) &&
+					!HasExternalDomain(cnfDialog.BccDomainList))
+				{
+					confirmFlag = false;
+				}
+
+
+				if (confirmFlag == false)
+				{
+					if(Properties.Settings.Default.EnableConfirmationSkip == true) {
+	#if _DEBUG_
+						MessageBox.Show("[Debug] Destination includes only internal domain.\nand EnableConfirmatinSkip is TRUE.\nConfirmation dialog will be skipped.");
+	#endif
+						Cancel = false;
+						return;
+					}
+					else
+					{
+	#if _DEBUG_
+						MessageBox.Show("[Debug] Destination includes only internal domain.\nbut EnableConfirmatinSkip is FALSE.\nConfirmation dialog will be shown.");
+	#endif
+					}
+				}
+				else
+				{
+	#if _DEBUG_
+					MessageBox.Show("[Debug] Destination includes external domain.\nConfirmation dialog will be shown.");
+	#endif
+				}
+
+
+				cnfDialog.ToDomainList = ConvertKnownDomains(cnfDialog.ToDomainList);
+				cnfDialog.CcDomainList = ConvertKnownDomains(cnfDialog.CcDomainList);
+				cnfDialog.BccDomainList = ConvertKnownDomains(cnfDialog.BccDomainList);
+
+
 
 				// 確認用ダイアログ（confirmDialog.cs）を表示する。
 				cnfDialog.ShowDialog();
@@ -138,15 +130,25 @@ namespace MailDestErrPrevention
 				// 確認用ダイアログで「送信」が押下された場合のみ送信処理を続ける。
 				if (cnfDialog.sendFlag == 1)
 				{
-					//                MessageBox.Show("message will be sent.");
 					Cancel = false;
 				}
 				else
 				{
-					//               MessageBox.Show("message send process was aborted by User.");
 					Cancel = true;
 				}
-			}
+			}   //Item.GetType() is Outlook.MailItem
+				/*			else if (Item.GetType() is Outlook.AppointmentItem)
+							{
+								Outlook.AppointmentItem CurrentMail = Item as Outlook.AppointmentItem;
+
+
+								return;
+							}   //Item.GetType() is Outlook.AppointmentItem
+							else
+							{
+								return;
+							}*/
+
 		}
 
 
@@ -267,6 +269,92 @@ namespace MailDestErrPrevention
 			return currentAddress;
 		}
 
+		private List<string> ConvertKnownDomains(List<string> DomainList)
+		{
+			List<string> ConvertedList = new List<string>();
+
+			foreach (string currentDomain in DomainList)
+			{
+				ConvertedList.Add(ConvertKnownDomain(currentDomain));
+			}
+
+			return ConvertedList;
+		}
+
+		private string ConvertKnownDomain(string currentDomain)
+		{
+			int Index;
+			StringBuilder ReturnString = new StringBuilder();
+
+			Index = Properties.Settings.Default.KnownDomainList[0].IndexOf(currentDomain);
+
+			if ((Index >= 0) && (Index < Properties.Settings.Default.KnownDomainList.Count))
+			{
+				ReturnString.Append(Properties.Settings.Default.KnownDomainList[1][Index].ToString());
+				ReturnString.Append(" (");
+			}
+			else
+			{
+				// currentDomainがKnownDomainList内に無かった場合「未登録のドメイン」と表示する。
+				ReturnString.Append("未登録のドメイン (");
+			}
+
+			ReturnString.Append(currentDomain);
+			ReturnString.Append(")");
+
+			return ReturnString.ToString();
+		}
+
+		////// InitProperties()
+		//	Check the List<string> in the properties and initialize if it's null.
+		private void InitProperties()
+		{
+			if (Properties.Settings.Default.InternalDomainList == null)
+			{
+				Properties.Settings.Default.EnableConfirmationSkip = false;
+				Properties.Settings.Default.InternalDomainList = new List<List<string>>();
+				Properties.Settings.Default.KnownDomainList = new List<List<string>>();
+			}
+		}
+
+		private List<string> ExtractDomains(List<string> AddressList)
+		{
+			List<string> ReturnDomainList = new List<string>();
+			string CurrentDomain;
+
+			foreach (string CurrentAddress in AddressList)
+			{
+				CurrentDomain = CurrentAddress.Split('@')[1];
+
+				if (ReturnDomainList.Contains(CurrentDomain) == false)
+				{
+					ReturnDomainList.Add(CurrentDomain);
+				}
+			}
+
+			return ReturnDomainList;
+		}
+
+		private bool HasExternalDomain(List<string> DomainList)
+		{
+			bool ContainsExternalDomain;
+
+			if (DomainList.Count == 0) {
+				return false;
+			} else {
+				ContainsExternalDomain = false;
+
+				foreach (string CurrentDomain in DomainList)
+				{
+					if (Properties.Settings.Default.InternalDomainList[0].Contains(CurrentDomain) == false)
+					{
+						ContainsExternalDomain = true;
+					}
+				}
+
+				return ContainsExternalDomain;
+			}
+		}
 
 		private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
 		{

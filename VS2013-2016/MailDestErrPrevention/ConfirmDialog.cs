@@ -9,13 +9,17 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace confirmDialog
+namespace MailDestErrPrevention
 {
     public partial class confirmDialog : Form
     {
-		public ArrayList ToDomainList = new ArrayList();
-		public ArrayList CcDomainList = new ArrayList();
-		public ArrayList BccDomainList = new ArrayList();
+		public List<string> ToAddressList = new List<string>();
+		public List<string> CcAddressList = new List<string>();
+		public List<string> BccAddressList = new List<string>();
+
+		public List<string> ToDomainList = new List<string>();
+		public List<string> CcDomainList = new List<string>();
+		public List<string> BccDomainList = new List<string>();
 
 		public int sendFlag;
         
@@ -49,77 +53,22 @@ namespace confirmDialog
 
 		private void confirmDialog_Shown(object sender, EventArgs e)
 		{
-			int i;
-
-			i = 0;
-
-			for (i=0; i<ToDomainList.Count; i++)
-			{
-				ToDomainList[i] = ConvertKnownDomain(ToDomainList[i].ToString());
-			}
-
-			for (i = 0; i < CcDomainList.Count; i++)
-			{
-				CcDomainList[i] = ConvertKnownDomain(CcDomainList[i].ToString());
-			}
-
-			for (i = 0; i < BccDomainList.Count; i++)
-			{
-				BccDomainList[i] = ConvertKnownDomain(BccDomainList[i].ToString());
-			}
 
 			// ドメインリストをリストボックスに登録する。
-			this.listBoxToDomainList.Items.AddRange(ToDomainList.ToArray());
-			this.listBoxCcDomainList.Items.AddRange(CcDomainList.ToArray());
-			this.listBoxBccDomainList.Items.AddRange(BccDomainList.ToArray());
+			this.listBoxToDomainList.DataSource = ToDomainList;
+			this.listBoxCcDomainList.DataSource = CcDomainList;
+			this.listBoxBccDomainList.DataSource = BccDomainList;
+			/*			this.listBoxToDomainList.DataSource = ToAddressList;
+						this.listBoxCcDomainList.DataSource = CcAddressList;
+						this.listBoxBccDomainList.DataSource = BccAddressList;*/
+
 		}
 
-		private string ConvertKnownDomain(string currentDomain)
+		private void buttonSettingChange_Click(object sender, EventArgs e)
 		{
-			int Index;
-			StringBuilder ReturnString = new StringBuilder();
+			SettingDialog setDialog = new SettingDialog();
 
-			Index = KnownDomainList.ToList().IndexOf(currentDomain);
-
-			if ((Index >= 0) && (Index < KnownDomainList.Length))
-			{
-				ReturnString.Append(KnownDomainNameList[Index].ToString());
-				ReturnString.Append(" (");
-			}
-			else
-			{
-				// currentDomainがKnownDomainList内に無かった場合「未登録のドメイン」と表示する。
-				ReturnString.Append("未登録のドメイン (");
-			}
-
-			ReturnString.Append(currentDomain);
-			ReturnString.Append(")");
-
-			return ReturnString.ToString();
+			setDialog.ShowDialog();
 		}
-
-		private string[] KnownDomainList = new string[] {
-				"ti.com",
-				"teldevice.co.jp",
-				"oki.com",
-				"oec.okaya.co.jp",
-				"murata.co.jp",
-				"eurotech.com",
-				"elsena.co.jp",
-				"avnet.com",
-				"advanet.jp"
-		};
-
-		private string[] KnownDomainNameList = new string[] {
-				"texas instruments",
-				"東京エレクトロンデバイス",
-				"沖グループ",
-				"岡谷エレクトロニクス",
-				"村田製作所",
-				"Eurotech",
-				"エルセナ",
-				"アヴネット",
-				"アドバネット"
-		};
 	}
 }
