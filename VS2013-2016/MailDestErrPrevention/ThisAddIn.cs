@@ -1,4 +1,4 @@
-﻿#define _DEBUG_
+﻿//#define _DEBUG_
 
 using System;
 using System.Collections;
@@ -269,6 +269,7 @@ namespace MailDestErrPrevention
 			return currentAddress;
 		}
 
+        // Listに格納された複数のドメインを受取り、名称を付与したリストを返す。
 		private List<string> ConvertKnownDomains(List<string> DomainList)
 		{
 			List<string> ConvertedList = new List<string>();
@@ -281,26 +282,59 @@ namespace MailDestErrPrevention
 			return ConvertedList;
 		}
 
-		private string ConvertKnownDomain(string currentDomain)
+        // ドメインを受け取り、名称を付与した文字列を返す。
+        private string ConvertKnownDomain(string currentDomain)
 		{
 			int Index;
 			StringBuilder ReturnString = new StringBuilder();
 
-			Index = Properties.Settings.Default.KnownDomainList[0].IndexOf(currentDomain);
+            // まずはKnownDomainListから調査する。
+            if (Properties.Settings.Default.KnownDomainList.Count != 0)
+            {
+                for(Index=0; Index< Properties.Settings.Default.KnownDomainList.Count; Index++) {
+                    if(Properties.Settings.Default.KnownDomainList[Index][0].ToLower() == currentDomain.ToLower())
+                    {
+                        break;
+                    }
+                }
+                //Index = Properties.Settings.Default.KnownDomainList[*].IndexOf(currentDomain);
 
-			if ((Index >= 0) && (Index < Properties.Settings.Default.KnownDomainList.Count))
-			{
-				ReturnString.Append(Properties.Settings.Default.KnownDomainList[1][Index].ToString());
-				ReturnString.Append(" (");
-			}
-			else
-			{
-				// currentDomainがKnownDomainList内に無かった場合「未登録のドメイン」と表示する。
-				ReturnString.Append("未登録のドメイン (");
-			}
+                if ((Index >= 0) && (Index < Properties.Settings.Default.KnownDomainList.Count))
+                {
+                    ReturnString.Append(Properties.Settings.Default.KnownDomainList[Index][1].ToString());
+                    ReturnString.Append(" (");
+                }
+                else
+                {
+                    // KnownDomainListに無ければInternalDomainListを調査する。
+                    if (Properties.Settings.Default.InternalDomainList.Count != 0)
+                    {
+                        for (Index = 0; Index < Properties.Settings.Default.InternalDomainList.Count; Index++)
+                        {
+                            if (Properties.Settings.Default.InternalDomainList[Index][0].ToLower() == currentDomain.ToLower())
+                            {
+                                break;
+                            }
+                        }
+//                        Index = Properties.Settings.Default.InternalDomainList[0].IndexOf(currentDomain.ToLower());
 
-			ReturnString.Append(currentDomain);
-			ReturnString.Append(")");
+                        if ((Index >= 0) && (Index < Properties.Settings.Default.InternalDomainList.Count))
+                        {
+                            ReturnString.Append(Properties.Settings.Default.InternalDomainList[Index][1].ToString());
+                            ReturnString.Append(" (");
+                        }
+                        else
+                        {
+                            // KnownDomainListにもInternalDomainListにも含まれなかった場合「未登録のドメイン」と表示する。
+                            ReturnString.Append("未登録のドメイン (");
+                        }
+
+                    }
+                }
+
+                ReturnString.Append(currentDomain);
+                ReturnString.Append(")");
+            }
 
 			return ReturnString.ToString();
 		}
@@ -344,14 +378,24 @@ namespace MailDestErrPrevention
 			} else {
 				ContainsExternalDomain = false;
 
-				foreach (string CurrentDomain in DomainList)
-				{
-					if (Properties.Settings.Default.InternalDomainList[0].Contains(CurrentDomain) == false)
-					{
-						ContainsExternalDomain = true;
-					}
-				}
 
+                if (Properties.Settings.Default.InternalDomainList.Count == 0)
+                {
+                    ContainsExternalDomain = true;
+                }
+                else
+                {
+
+                    // なんかここで配列外を参照してるとエラーが出るので修正する。
+                    // foreachの条件がおかしいだけのような気がする。
+                    foreach (string CurrentDomain in DomainList)
+                    {
+                        if (Properties.Settings.Default.InternalDomainList[0].Contains(CurrentDomain) == false)
+                        {
+                            ContainsExternalDomain = true;
+                        }
+                    }
+                }
 				return ContainsExternalDomain;
 			}
 		}
