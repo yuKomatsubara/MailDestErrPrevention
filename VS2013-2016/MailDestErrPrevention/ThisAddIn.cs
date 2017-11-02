@@ -14,130 +14,125 @@ using Microsoft.Office.Interop.Outlook;
 
 namespace MailDestErrPrevention
 {
-	public partial class ThisAddIn
-	{
-		private void ThisAddIn_Startup(object sender, System.EventArgs e)
-		{
-			Application.ItemSend += Application_ItemSend;
-		}
+    public partial class ThisAddIn
+    {
+        private void ThisAddIn_Startup(object sender, System.EventArgs e)
+        {
+            Application.ItemSend += Application_ItemSend;
+        }
 
-		private void Application_ItemSend(object Item, ref bool Cancel)
-		{
-			// 変数定義
-			string currentAddress;
-			List<string> DestinationAddressList;
-			bool confirmFlag;
-			confirmDialog cnfDialog = new confirmDialog();
+        private void Application_ItemSend(object Item, ref bool Cancel)
+        {
+            // 変数定義
+            string currentAddress;
+            List<string> DestinationAddressList;
+            bool confirmFlag;
+            confirmDialog cnfDialog = new confirmDialog();
 
 
-			if (true)
-//			if (Item.GetType() is Outlook.MailItem)
-			{
-				Outlook.MailItem CurrentMail = Item as Outlook.MailItem;
+            if (true)
+            //			if (Item.GetType() is Outlook.MailItem)
+            {
+                Outlook.MailItem CurrentMail = Item as Outlook.MailItem;
 
-				foreach (Outlook.Recipient currentRecipient in CurrentMail.Recipients)
-				{
-					// 各宛先についてアドレス（currentAddress）を取得する。
-					currentAddress = GetRecipientAddress(currentRecipient);
+                foreach (Outlook.Recipient currentRecipient in CurrentMail.Recipients) {
+                    // 各宛先についてアドレス（currentAddress）を取得する。
+                    currentAddress = GetRecipientAddress(currentRecipient);
 
-					// アドレスごとに宛先のタイプを判定し、「DestinationAddressList」が示すオブジェクトを切りかえる。
-					// MailItem.Typeの実体はOlMailRecipientTypeであり以下の通り対応する。
-					//      olOriginator    0
-					//      olTo			1
-					//		olBCC			3
-					//      olCC			2
-					switch (currentRecipient.Type)
-					{
-						case 1:
-							DestinationAddressList = cnfDialog.ToAddressList;
-							break;
-						case 2:
-							DestinationAddressList = cnfDialog.CcAddressList;
-							break;
-						case 3:
-							DestinationAddressList = cnfDialog.BccAddressList;
-							break;
+                    // アドレスごとに宛先のタイプを判定し、「DestinationAddressList」が示すオブジェクトを切りかえる。
+                    // MailItem.Typeの実体はOlMailRecipientTypeであり以下の通り対応する。
+                    //      olOriginator    0
+                    //      olTo			1
+                    //		olBCC			3
+                    //      olCC			2
+                    switch (currentRecipient.Type) {
+                        case 1:
+                            DestinationAddressList = cnfDialog.ToAddressList;
+                            break;
+                        case 2:
+                            DestinationAddressList = cnfDialog.CcAddressList;
+                            break;
+                        case 3:
+                            DestinationAddressList = cnfDialog.BccAddressList;
+                            break;
 
-						case 0:
-						default:
-							// 送信者アドレスについては何も処理を行わない。
-							continue;
-					}
+                        case 0:
+                        default:
+                            // 送信者アドレスについては何も処理を行わない。
+                            continue;
+                    }
 
-					DestinationAddressList.Add(currentAddress);
-				}
+                    DestinationAddressList.Add(currentAddress);
+                }
 
 #if _DEBUG_
 				MessageBox.Show("[Debug] Finished to gather addresses.");
 #endif
 
 
-				InitProperties();
+                InitProperties();
 
-				cnfDialog.ToDomainList = ExtractDomains(cnfDialog.ToAddressList);
-				cnfDialog.CcDomainList = ExtractDomains(cnfDialog.CcAddressList);
-				cnfDialog.BccDomainList = ExtractDomains(cnfDialog.BccAddressList);
-
-
-
-				// 宛先に社内ドメインしか含まないかつ、設定で確認スキップを許可している場合は確認ダイアログをスキップする機能。
-				// ただし、単純なうっかり送信防止機能（例えば、他のウインドウをクリックした積もりで「送信」押しちゃうとか）として
-				// 使いたいという要望も想定し、最終的には外部ファイルを読み込んでEnable/Disableを切り替えられるようにする。
-
-				confirmFlag = true;
-
-				if (!HasExternalDomain(cnfDialog.ToDomainList) &&
-					!HasExternalDomain(cnfDialog.CcDomainList) &&
-					!HasExternalDomain(cnfDialog.BccDomainList))
-				{
-					confirmFlag = false;
-				}
+                cnfDialog.ToDomainList = ExtractDomains(cnfDialog.ToAddressList);
+                cnfDialog.CcDomainList = ExtractDomains(cnfDialog.CcAddressList);
+                cnfDialog.BccDomainList = ExtractDomains(cnfDialog.BccAddressList);
 
 
-				if (confirmFlag == false)
-				{
-					if(Properties.Settings.Default.EnableConfirmationSkip == true) {
-	#if _DEBUG_
+
+                // 宛先に社内ドメインしか含まないかつ、設定で確認スキップを許可している場合は確認ダイアログをスキップする機能。
+                // ただし、単純なうっかり送信防止機能（例えば、他のウインドウをクリックした積もりで「送信」押しちゃうとか）として
+                // 使いたいという要望も想定し、最終的には外部ファイルを読み込んでEnable/Disableを切り替えられるようにする。
+
+                confirmFlag = true;
+
+                if (!HasExternalDomain(cnfDialog.ToDomainList) &&
+                    !HasExternalDomain(cnfDialog.CcDomainList) &&
+                    !HasExternalDomain(cnfDialog.BccDomainList)) {
+                    confirmFlag = false;
+                }
+
+
+                if (confirmFlag == false) {
+                    if (Properties.Settings.Default.EnableConfirmationSkip == true) {
+#if _DEBUG_
 						MessageBox.Show("[Debug] Destination includes only internal domain.\nand EnableConfirmatinSkip is TRUE.\nConfirmation dialog will be skipped.");
-	#endif
-						Cancel = false;
-						return;
-					}
-					else
-					{
-	#if _DEBUG_
+#endif
+                        Cancel = false;
+                        return;
+                    } else {
+#if _DEBUG_
 						MessageBox.Show("[Debug] Destination includes only internal domain.\nbut EnableConfirmatinSkip is FALSE.\nConfirmation dialog will be shown.");
-	#endif
-					}
-				}
-				else
-				{
-	#if _DEBUG_
+#endif
+                    }
+                } else {
+#if _DEBUG_
 					MessageBox.Show("[Debug] Destination includes external domain.\nConfirmation dialog will be shown.");
-	#endif
-				}
+#endif
+                }
 
 
-				cnfDialog.ToDomainList = ConvertKnownDomains(cnfDialog.ToDomainList);
-				cnfDialog.CcDomainList = ConvertKnownDomains(cnfDialog.CcDomainList);
-				cnfDialog.BccDomainList = ConvertKnownDomains(cnfDialog.BccDomainList);
+                cnfDialog.ToDomainList = ConvertKnownDomains(cnfDialog.ToDomainList);
+                cnfDialog.CcDomainList = ConvertKnownDomains(cnfDialog.CcDomainList);
+                cnfDialog.BccDomainList = ConvertKnownDomains(cnfDialog.BccDomainList);
 
 
+                if (Properties.Settings.Default.InternalDomainList.Count == 0) {
+                    MessageBox.Show("内部ドメインが登録されていません。右上の「歯車」ボタンからインポートしてください。");
+                }
+                if (Properties.Settings.Default.KnownDomainList.Count == 0) {
+                    MessageBox.Show("既知のドメインが登録されていません。右上の「歯車」ボタンからインポートしてください。");
+                }
 
-				// 確認用ダイアログ（confirmDialog.cs）を表示する。
-				cnfDialog.ShowDialog();
+                // 確認用ダイアログ（confirmDialog.cs）を表示する。
+                cnfDialog.ShowDialog();
 
-				// 確認用ダイアログで「送信」が押下された場合のみ送信処理を続ける。
-				if (cnfDialog.sendFlag == 1)
-				{
-					Cancel = false;
-				}
-				else
-				{
-					Cancel = true;
-				}
-			}   //Item.GetType() is Outlook.MailItem
-				/*			else if (Item.GetType() is Outlook.AppointmentItem)
+                // 確認用ダイアログで「送信」が押下された場合のみ送信処理を続ける。
+                if (cnfDialog.sendFlag == 1) {
+                    Cancel = false;
+                } else {
+                    Cancel = true;
+                }
+            }   //Item.GetType() is Outlook.MailItem
+                /*			else if (Item.GetType() is Outlook.AppointmentItem)
 							{
 								Outlook.AppointmentItem CurrentMail = Item as Outlook.AppointmentItem;
 
@@ -149,55 +144,49 @@ namespace MailDestErrPrevention
 								return;
 							}*/
 
-		}
+        }
 
 
-		private string GetRecipientAddress(Outlook.Recipient currentRecipient)
-		{
-			string currentAddress = currentRecipient.Address;
-			StringBuilder messageString = new StringBuilder();
+        private string GetRecipientAddress(Outlook.Recipient currentRecipient)
+        {
+            string currentAddress = currentRecipient.Address;
+            StringBuilder messageString = new StringBuilder();
 
-			Outlook.OlAddressEntryUserType currentAddressType;
+            Outlook.OlAddressEntryUserType currentAddressType;
 
-			Outlook.ExchangeUser currentExcUser;
-			Outlook.ExchangeDistributionList currentExcDistList;
+            Outlook.ExchangeUser currentExcUser;
+            Outlook.ExchangeDistributionList currentExcDistList;
 
 
-			if (currentAddress.Contains('@') == true)
-			{
-				// Recipient.Address is judged to be a plain e-mail address because it contains '@'.
-				// No additional process is needed.
+            if (currentAddress.Contains('@') == true) {
+                // Recipient.Address is judged to be a plain e-mail address because it contains '@'.
+                // No additional process is needed.
 #if _DEBUG_
 				messageString.AppendLine("Succeeded to get Address from a non-Exchange address");
 				messageString.AppendLine("currentAddress:");
 				messageString.AppendLine(currentAddress);
 				MessageBox.Show(messageString.ToString());
 #endif
-			}
-			else
-			{
-				// Recipient.Address does not contain '@'.
-				// This Recipient is judged to be a Microsoft Exchange account.
+            } else {
+                // Recipient.Address does not contain '@'.
+                // This Recipient is judged to be a Microsoft Exchange account.
 
-				currentAddressType = currentRecipient.AddressEntry.AddressEntryUserType;
+                currentAddressType = currentRecipient.AddressEntry.AddressEntryUserType;
 
-				if (currentAddressType == Outlook.OlAddressEntryUserType.olExchangeUserAddressEntry)
-				{
-					currentExcUser = currentRecipient.AddressEntry.GetExchangeUser();
-					if (currentExcUser == null)
-					{
-						messageString.AppendLine("Failed to get ExchangeUser from olExchangeUserAddressEntry");
-						messageString.AppendLine("currentAddress:");
-						messageString.AppendLine(currentAddress);
-						MessageBox.Show(messageString.ToString());
-					}
+                if (currentAddressType == Outlook.OlAddressEntryUserType.olExchangeUserAddressEntry) {
+                    currentExcUser = currentRecipient.AddressEntry.GetExchangeUser();
+                    if (currentExcUser == null) {
+                        messageString.AppendLine("Failed to get ExchangeUser from olExchangeUserAddressEntry");
+                        messageString.AppendLine("currentAddress:");
+                        messageString.AppendLine(currentAddress);
+                        MessageBox.Show(messageString.ToString());
+                    }
 
-					currentAddress = currentExcUser.PrimarySmtpAddress;
-					if (currentAddress == null)
-					{
-						messageString.AppendLine("Failed to get PrimarySmtpAddress from olExchangeUserAddressEntry");
-						MessageBox.Show(messageString.ToString());
-					}
+                    currentAddress = currentExcUser.PrimarySmtpAddress;
+                    if (currentAddress == null) {
+                        messageString.AppendLine("Failed to get PrimarySmtpAddress from olExchangeUserAddressEntry");
+                        MessageBox.Show(messageString.ToString());
+                    }
 
 #if _DEBUG_
 					messageString.AppendLine("Succeeded to get Address from olExchangeUserAddressEntry");
@@ -207,24 +196,20 @@ namespace MailDestErrPrevention
 					messageString.AppendLine(currentAddress);
 					MessageBox.Show(messageString.ToString());
 #endif
-				}
-				else if (currentAddressType == Outlook.OlAddressEntryUserType.olExchangeRemoteUserAddressEntry)
-				{
-					currentExcUser = currentRecipient.AddressEntry.GetExchangeUser();
-					if (currentExcUser == null)
-					{
-						messageString.AppendLine("Failed to get ExchangeUser from olExchangeRemoteUserAddressEntry");
-						messageString.AppendLine("currentAddress:");
-						messageString.AppendLine(currentAddress);
-						MessageBox.Show(messageString.ToString());
-					}
+                } else if (currentAddressType == Outlook.OlAddressEntryUserType.olExchangeRemoteUserAddressEntry) {
+                    currentExcUser = currentRecipient.AddressEntry.GetExchangeUser();
+                    if (currentExcUser == null) {
+                        messageString.AppendLine("Failed to get ExchangeUser from olExchangeRemoteUserAddressEntry");
+                        messageString.AppendLine("currentAddress:");
+                        messageString.AppendLine(currentAddress);
+                        MessageBox.Show(messageString.ToString());
+                    }
 
-					currentAddress = currentExcUser.PrimarySmtpAddress;
-					if (currentAddress == null)
-					{
-						messageString.AppendLine("Failed to get PrimarySmtpAddress from olExchangeRemoteUserAddressEntry");
-						MessageBox.Show(messageString.ToString());
-					}
+                    currentAddress = currentExcUser.PrimarySmtpAddress;
+                    if (currentAddress == null) {
+                        messageString.AppendLine("Failed to get PrimarySmtpAddress from olExchangeRemoteUserAddressEntry");
+                        MessageBox.Show(messageString.ToString());
+                    }
 
 #if _DEBUG_
 					messageString.AppendLine("Succeeded to get Address from olExchangeRemoteUserAddressEntry");
@@ -234,24 +219,20 @@ namespace MailDestErrPrevention
 					messageString.AppendLine(currentAddress);
 					MessageBox.Show(messageString.ToString());
 #endif
-				}
-				else if (currentAddressType == Outlook.OlAddressEntryUserType.olExchangeDistributionListAddressEntry)
-				{
-					currentExcDistList = currentRecipient.AddressEntry.GetExchangeDistributionList();
-					if (currentExcDistList == null)
-					{
-						messageString.AppendLine("Failed to get ExchangeUser from olExchangeRemoteUserAddressEntry");
-						messageString.AppendLine("currentAddress:");
-						messageString.AppendLine(currentAddress);
-						MessageBox.Show(messageString.ToString());
-					}
+                } else if (currentAddressType == Outlook.OlAddressEntryUserType.olExchangeDistributionListAddressEntry) {
+                    currentExcDistList = currentRecipient.AddressEntry.GetExchangeDistributionList();
+                    if (currentExcDistList == null) {
+                        messageString.AppendLine("Failed to get ExchangeUser from olExchangeRemoteUserAddressEntry");
+                        messageString.AppendLine("currentAddress:");
+                        messageString.AppendLine(currentAddress);
+                        MessageBox.Show(messageString.ToString());
+                    }
 
-					currentAddress = currentExcDistList.PrimarySmtpAddress;
-					if (currentAddress == null)
-					{
-						messageString.AppendLine("Failed to get PrimarySmtpAddress from olExchangeRemoteUserAddressEntry");
-						MessageBox.Show(messageString.ToString());
-					}
+                    currentAddress = currentExcDistList.PrimarySmtpAddress;
+                    if (currentAddress == null) {
+                        messageString.AppendLine("Failed to get PrimarySmtpAddress from olExchangeRemoteUserAddressEntry");
+                        MessageBox.Show(messageString.ToString());
+                    }
 
 #if _DEBUG_
 					messageString.AppendLine("Succeeded to get Address from olExchangeRemoteUserAddressEntry");
@@ -261,70 +242,58 @@ namespace MailDestErrPrevention
 					messageString.AppendLine(currentAddress);
 					MessageBox.Show(messageString.ToString());
 #endif
-				}
+                }
 
 
-			}
+            }
 
-			return currentAddress;
-		}
+            return currentAddress;
+        }
 
         // Listに格納された複数のドメインを受取り、名称を付与したリストを返す。
-		private List<string> ConvertKnownDomains(List<string> DomainList)
-		{
-			List<string> ConvertedList = new List<string>();
+        private List<string> ConvertKnownDomains(List<string> DomainList)
+        {
+            List<string> ConvertedList = new List<string>();
 
-			foreach (string currentDomain in DomainList)
-			{
-				ConvertedList.Add(ConvertKnownDomain(currentDomain));
-			}
+            foreach (string currentDomain in DomainList) {
+                ConvertedList.Add(ConvertKnownDomain(currentDomain));
+            }
 
-			return ConvertedList;
-		}
+            return ConvertedList;
+        }
 
         // ドメインを受け取り、名称を付与した文字列を返す。
         private string ConvertKnownDomain(string currentDomain)
-		{
-			int Index;
-			StringBuilder ReturnString = new StringBuilder();
+        {
+            int Index;
+            StringBuilder ReturnString = new StringBuilder();
 
             // まずはKnownDomainListから調査する。
-            if (Properties.Settings.Default.KnownDomainList.Count != 0)
-            {
-                for(Index=0; Index< Properties.Settings.Default.KnownDomainList.Count; Index++) {
-                    if(Properties.Settings.Default.KnownDomainList[Index][0].ToLower() == currentDomain.ToLower())
-                    {
+            if (Properties.Settings.Default.KnownDomainList.Count != 0) {
+                for (Index = 0; Index < Properties.Settings.Default.KnownDomainList.Count; Index++) {
+                    if (Properties.Settings.Default.KnownDomainList[Index][0].ToLower() == currentDomain.ToLower()) {
                         break;
                     }
                 }
                 //Index = Properties.Settings.Default.KnownDomainList[*].IndexOf(currentDomain);
 
-                if ((Index >= 0) && (Index < Properties.Settings.Default.KnownDomainList.Count))
-                {
+                if ((Index >= 0) && (Index < Properties.Settings.Default.KnownDomainList.Count)) {
                     ReturnString.Append(Properties.Settings.Default.KnownDomainList[Index][1].ToString());
                     ReturnString.Append(" (");
-                }
-                else
-                {
+                } else {
                     // KnownDomainListに無ければInternalDomainListを調査する。
-                    if (Properties.Settings.Default.InternalDomainList.Count != 0)
-                    {
-                        for (Index = 0; Index < Properties.Settings.Default.InternalDomainList.Count; Index++)
-                        {
-                            if (Properties.Settings.Default.InternalDomainList[Index][0].ToLower() == currentDomain.ToLower())
-                            {
+                    if (Properties.Settings.Default.InternalDomainList.Count != 0) {
+                        for (Index = 0; Index < Properties.Settings.Default.InternalDomainList.Count; Index++) {
+                            if (Properties.Settings.Default.InternalDomainList[Index][0].ToLower() == currentDomain.ToLower()) {
                                 break;
                             }
                         }
-//                        Index = Properties.Settings.Default.InternalDomainList[0].IndexOf(currentDomain.ToLower());
+                        //                        Index = Properties.Settings.Default.InternalDomainList[0].IndexOf(currentDomain.ToLower());
 
-                        if ((Index >= 0) && (Index < Properties.Settings.Default.InternalDomainList.Count))
-                        {
+                        if ((Index >= 0) && (Index < Properties.Settings.Default.InternalDomainList.Count)) {
                             ReturnString.Append(Properties.Settings.Default.InternalDomainList[Index][1].ToString());
                             ReturnString.Append(" (");
-                        }
-                        else
-                        {
+                        } else {
                             // KnownDomainListにもInternalDomainListにも含まれなかった場合「未登録のドメイン」と表示する。
                             ReturnString.Append("未登録のドメイン (");
                         }
@@ -336,88 +305,90 @@ namespace MailDestErrPrevention
                 ReturnString.Append(")");
             }
 
-			return ReturnString.ToString();
-		}
+            return ReturnString.ToString();
+        }
 
-		////// InitProperties()
-		//	Check the List<string> in the properties and initialize if it's null.
-		private void InitProperties()
-		{
-			if (Properties.Settings.Default.InternalDomainList == null)
-			{
-				Properties.Settings.Default.EnableConfirmationSkip = false;
-				Properties.Settings.Default.InternalDomainList = new List<List<string>>();
-				Properties.Settings.Default.KnownDomainList = new List<List<string>>();
-			}
-		}
+        ////// InitProperties()
+        //	Check the List<string> in the properties and initialize if it's null.
+        private void InitProperties()
+        {
+            if (Properties.Settings.Default.InternalDomainList == null) {
+                Properties.Settings.Default.EnableConfirmationSkip = false;
+                Properties.Settings.Default.InternalDomainList = new List<List<string>>();
+                Properties.Settings.Default.KnownDomainList = new List<List<string>>();
+            }
+        }
 
-		private List<string> ExtractDomains(List<string> AddressList)
-		{
-			List<string> ReturnDomainList = new List<string>();
-			string CurrentDomain;
+        private List<string> ExtractDomains(List<string> AddressList)
+        {
+            List<string> ReturnDomainList = new List<string>();
+            string CurrentDomain;
 
-			foreach (string CurrentAddress in AddressList)
-			{
-				CurrentDomain = CurrentAddress.Split('@')[1];
+            foreach (string CurrentAddress in AddressList) {
+                // ドメインは全て小文字にしてから処理する。
+                CurrentDomain = CurrentAddress.Split('@')[1].ToLower();
 
-				if (ReturnDomainList.Contains(CurrentDomain) == false)
-				{
-					ReturnDomainList.Add(CurrentDomain);
-				}
-			}
+                if (ReturnDomainList.Contains(CurrentDomain) == false) {
+                    ReturnDomainList.Add(CurrentDomain);
+                }
+            }
 
-			return ReturnDomainList;
-		}
+            return ReturnDomainList;
+        }
 
-		private bool HasExternalDomain(List<string> DomainList)
-		{
-			bool ContainsExternalDomain;
+        private bool HasExternalDomain(List<string> DomainList)
+        {
+            bool ContainsExternalDomain;
+            bool NotContainsExternalDomain;
+            bool ThisDomainIsInternal;
 
-			if (DomainList.Count == 0) {
-				return false;
-			} else {
-				ContainsExternalDomain = false;
-
-
-                if (Properties.Settings.Default.InternalDomainList.Count == 0)
-                {
+            if (DomainList.Count == 0) {
+                return false;
+            } else {
+                if (Properties.Settings.Default.InternalDomainList.Count == 0) {
+                    // 内部ドメインの登録が無い場合は問答無用で「外部ドメインを含む」と判定。
                     ContainsExternalDomain = true;
-                }
-                else
-                {
+                } else {
+                    NotContainsExternalDomain = true;
 
-                    // なんかここで配列外を参照してるとエラーが出るので修正する。
-                    // foreachの条件がおかしいだけのような気がする。
-                    foreach (string CurrentDomain in DomainList)
-                    {
-                        if (Properties.Settings.Default.InternalDomainList[0].Contains(CurrentDomain) == false)
-                        {
-                            ContainsExternalDomain = true;
+                    foreach (string CurrentDomain in DomainList) {
+                        ThisDomainIsInternal = false;
+
+                        foreach (List<string> CurrentInternalDomain in Properties.Settings.Default.InternalDomainList) {
+                            if (CurrentInternalDomain[0].Contains(CurrentDomain) == true) {
+                                ThisDomainIsInternal = true;
+                                break;
+                            }
                         }
+
+                        NotContainsExternalDomain &= ThisDomainIsInternal;
                     }
+
+                    ContainsExternalDomain = !NotContainsExternalDomain;
                 }
-				return ContainsExternalDomain;
-			}
-		}
 
-		private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
-		{
-			//注: Outlook はこのイベントを発行しなくなりました。Outlook が
-			//    を Outlook のシャットダウン時に実行する必要があります。https://go.microsoft.com/fwlink/?LinkId=506785 をご覧ください
-		}
+                return ContainsExternalDomain;
+            }
+        }
 
-		#region VSTO で生成されたコード
+        private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
+        {
+            //注: Outlook はこのイベントを発行しなくなりました。Outlook が
+            //    を Outlook のシャットダウン時に実行する必要があります。https://go.microsoft.com/fwlink/?LinkId=506785 をご覧ください
+        }
 
-		/// <summary>
-		/// デザイナーのサポートに必要なメソッドです。
-		/// このメソッドの内容をコード エディターで変更しないでください。
-		/// </summary>
-		private void InternalStartup()
-		{
-			this.Startup += new System.EventHandler(ThisAddIn_Startup);
-			this.Shutdown += new System.EventHandler(ThisAddIn_Shutdown);
-		}
+        #region VSTO で生成されたコード
 
-		#endregion
-	}
+        /// <summary>
+        /// デザイナーのサポートに必要なメソッドです。
+        /// このメソッドの内容をコード エディターで変更しないでください。
+        /// </summary>
+        private void InternalStartup()
+        {
+            this.Startup += new System.EventHandler(ThisAddIn_Startup);
+            this.Shutdown += new System.EventHandler(ThisAddIn_Shutdown);
+        }
+
+        #endregion
+    }
 }

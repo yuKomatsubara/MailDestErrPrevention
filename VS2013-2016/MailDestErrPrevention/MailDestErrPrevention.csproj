@@ -30,19 +30,19 @@
     <DefineConstants>VSTO40</DefineConstants>
     <IsWebBootstrapper>False</IsWebBootstrapper>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <PublishUrl>publish\</PublishUrl>
+    <PublishUrl>D:\GitHub\MailDestErrPrevention\MailDestErrPrevention\VS2013-2016\MailDestErrPrevention\publish\</PublishUrl>
     <InstallUrl />
     <TargetCulture>ja</TargetCulture>
-    <ApplicationVersion>0.7.0.1</ApplicationVersion>
+    <ApplicationVersion>0.9.0.3</ApplicationVersion>
     <AutoIncrementApplicationRevision>true</AutoIncrementApplicationRevision>
-    <UpdateEnabled>true</UpdateEnabled>
-    <UpdateInterval>7</UpdateInterval>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateInterval>0</UpdateInterval>
     <UpdateIntervalUnits>days</UpdateIntervalUnits>
     <ProductName>MailDestErrPrevention</ProductName>
     <PublisherName>Yu Komatsubara</PublisherName>
     <SupportUrl />
     <FriendlyName>メール誤送信防止アドイン</FriendlyName>
-    <OfficeApplicationDescription />
+    <OfficeApplicationDescription>メール送信時、宛先に含まれるドメインの確認を促す。</OfficeApplicationDescription>
     <LoadBehavior>3</LoadBehavior>
   </PropertyGroup>
   <ItemGroup>
