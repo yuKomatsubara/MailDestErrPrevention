@@ -22,7 +22,10 @@ namespace MailDestErrPrevention
 		public List<string> BccDomainList = new List<string>();
 
 		public int sendFlag;
-        
+        public bool includesExternalDomain;
+        public bool hasAttachment                                                                                                                                                                                                                        ;
+
+
         public confirmDialog()
         {
             InitializeComponent();
@@ -40,29 +43,43 @@ namespace MailDestErrPrevention
             this.Close();
         }
 
-        private void checkBoxConfirm_CheckStateChanged(object sender, EventArgs e)
+        private void buttonSend_stateUpdate()
         {
-            if(checkBoxConfirm.Checked == true)
-            {
+            if (this.checkBoxDomainConfirm.Checked == true &&
+                this.checkBoxFilePassword.Checked == true) {
                 buttonSend.Enabled = true;
-            } else
-            {
+            } else {
                 buttonSend.Enabled = false;
             }
         }
 
-		private void confirmDialog_Shown(object sender, EventArgs e)
+        private void checkBoxConfirm_CheckStateChanged(object sender, EventArgs e)
+        {
+            buttonSend_stateUpdate();
+        }
+
+        private void checkBoxFilePassword_CheckStateChanged(object sender, EventArgs e)
+        {
+            buttonSend_stateUpdate();
+        }
+
+        private void confirmDialog_Shown(object sender, EventArgs e)
 		{
 
 			// ドメインリストをリストボックスに登録する。
 			this.listBoxToDomainList.DataSource = ToDomainList;
 			this.listBoxCcDomainList.DataSource = CcDomainList;
 			this.listBoxBccDomainList.DataSource = BccDomainList;
-			/*			this.listBoxToDomainList.DataSource = ToAddressList;
-						this.listBoxCcDomainList.DataSource = CcAddressList;
-						this.listBoxBccDomainList.DataSource = BccAddressList;*/
 
-		}
+            // 外部ドメイン向け かつ 添付ファイルが有るときのみ、添付ファイル確認用のチェックボックスを表示する。   
+            if (this.includesExternalDomain == true && this.hasAttachment == true) {
+                this.checkBoxFilePassword.Show();
+                this.checkBoxFilePassword.Checked = false;
+            } else {
+                this.checkBoxFilePassword.Hide();
+                this.checkBoxFilePassword.Checked = true;
+            }
+        }
 
 		private void buttonSettingChange_Click(object sender, EventArgs e)
 		{
@@ -70,5 +87,5 @@ namespace MailDestErrPrevention
 
 			setDialog.ShowDialog();
 		}
-	}
+    }
 }

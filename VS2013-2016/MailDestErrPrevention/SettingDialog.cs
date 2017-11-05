@@ -44,15 +44,8 @@ namespace MailDestErrPrevention
             RecordCount = Properties.Settings.Default.InternalDomainList.Count;
             recordList = new DataGridViewRow[RecordCount];
 
-#if _DEBUG_
-            MessageBox.Show(string.Concat("Properties.Settings.Default.InternalDomainList.Count = ", RecordCount.ToString()));
-#endif
-
             for (int i = 0; i < RecordCount; i++)
             {
-#if _DEBUG_
-                MessageBox.Show("Properties.Settings.Default.InternalDomainList[" + i.ToString() + "] is" + Properties.Settings.Default.InternalDomainList[i]);
-#endif
                 this.dataGridViewInternalDomain.Rows.Add(new string[] { Properties.Settings.Default.InternalDomainList[i][0], Properties.Settings.Default.InternalDomainList[i][1] });
             }
             removeBlankRows(dataGridViewInternalDomain);
@@ -69,9 +62,6 @@ namespace MailDestErrPrevention
             this.dataGridViewKnownDomain.Columns[1].Name = "会社名";
 
 
-#if _DEBUG_
-            MessageBox.Show(string.Concat("Properties.Settings.Default.InternalDomainList.Count = ", RecordCount.ToString()));
-#endif
             RecordCount = Properties.Settings.Default.KnownDomainList.Count;
             recordList = new DataGridViewRow[RecordCount];
 
@@ -114,7 +104,6 @@ namespace MailDestErrPrevention
                 currentRow[1] = (currentDataGridView.Rows[i].Cells[1].Value ?? "").ToString().Trim();
 
                 ReturnList.Add(new List<string>(currentRow));
-                //                ReturnList.Add(new List<string> { currentDataGridView.Rows[i].Cells });
             }
 
             return ReturnList;
@@ -174,10 +163,6 @@ namespace MailDestErrPrevention
             inputTextReader = new StreamReader(inputText);
             string[] inputTextRows = inputTextReader.ReadToEnd().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
 
-#if _DEBUG_
-            MessageBox.Show("inputTextRows.Length = " + inputTextRows.Length + "\r\n" + "inputTextRows[0] = " + inputTextRows[0]);
-#endif
-
             // 各行についてリストに追加する。
             for (int currentRecord = 0; currentRecord < inputTextRows.Length; currentRecord++)
             {
@@ -220,6 +205,5 @@ namespace MailDestErrPrevention
         {
             this.Close();
         }
-
     }
 }

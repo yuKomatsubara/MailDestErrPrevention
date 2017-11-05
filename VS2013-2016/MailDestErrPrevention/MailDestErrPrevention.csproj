@@ -33,7 +33,7 @@
     <PublishUrl>D:\GitHub\MailDestErrPrevention\MailDestErrPrevention\VS2013-2016\MailDestErrPrevention\publish\</PublishUrl>
     <InstallUrl />
     <TargetCulture>ja</TargetCulture>
-    <ApplicationVersion>0.9.0.3</ApplicationVersion>
+    <ApplicationVersion>1.0.0.1</ApplicationVersion>
     <AutoIncrementApplicationRevision>true</AutoIncrementApplicationRevision>
     <UpdateEnabled>false</UpdateEnabled>
     <UpdateInterval>0</UpdateInterval>

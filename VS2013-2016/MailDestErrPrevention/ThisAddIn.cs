@@ -1,6 +1,4 @@
-﻿//#define _DEBUG_
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +8,6 @@ using System.Windows.Forms;
 using Outlook = Microsoft.Office.Interop.Outlook;
 using Office = Microsoft.Office.Core;
 using Microsoft.Office.Interop.Outlook;
-
 
 namespace MailDestErrPrevention
 {
@@ -26,17 +23,15 @@ namespace MailDestErrPrevention
             // 変数定義
             string currentAddress;
             List<string> DestinationAddressList;
-            bool confirmFlag;
             confirmDialog cnfDialog = new confirmDialog();
 
 
             if (true)
-            //			if (Item.GetType() is Outlook.MailItem)
             {
                 Outlook.MailItem CurrentMail = Item as Outlook.MailItem;
 
+                // 各宛先についてアドレス（currentAddress）を取得し、cnfDialog内のリストへ格納する。
                 foreach (Outlook.Recipient currentRecipient in CurrentMail.Recipients) {
-                    // 各宛先についてアドレス（currentAddress）を取得する。
                     currentAddress = GetRecipientAddress(currentRecipient);
 
                     // アドレスごとに宛先のタイプを判定し、「DestinationAddressList」が示すオブジェクトを切りかえる。
@@ -65,61 +60,56 @@ namespace MailDestErrPrevention
                     DestinationAddressList.Add(currentAddress);
                 }
 
-#if _DEBUG_
-				MessageBox.Show("[Debug] Finished to gather addresses.");
-#endif
-
-
+                // アドインの起動がインストールしてから初めての場合プロパティがnullであるため、オブジェクトを生成する。
                 InitProperties();
 
+                // アドレスリストからドメインを抜き出してドメインリストに格納する。
+                // （重複排除はExtractDomains内で行っている）
                 cnfDialog.ToDomainList = ExtractDomains(cnfDialog.ToAddressList);
                 cnfDialog.CcDomainList = ExtractDomains(cnfDialog.CcAddressList);
                 cnfDialog.BccDomainList = ExtractDomains(cnfDialog.BccAddressList);
 
 
-
-                // 宛先に社内ドメインしか含まないかつ、設定で確認スキップを許可している場合は確認ダイアログをスキップする機能。
-                // ただし、単純なうっかり送信防止機能（例えば、他のウインドウをクリックした積もりで「送信」押しちゃうとか）として
-                // 使いたいという要望も想定し、最終的には外部ファイルを読み込んでEnable/Disableを切り替えられるようにする。
-
-                confirmFlag = true;
+                // cnfDialog側でチェック内容の操作が行えるよう「内部ドメインのみか否か」「添付ファイルが有るか」を渡す。
+                cnfDialog.includesExternalDomain = true;
 
                 if (!HasExternalDomain(cnfDialog.ToDomainList) &&
                     !HasExternalDomain(cnfDialog.CcDomainList) &&
                     !HasExternalDomain(cnfDialog.BccDomainList)) {
-                    confirmFlag = false;
+                    cnfDialog.includesExternalDomain = false;
+                }
+
+                if (CurrentMail.Attachments.Count != 0) {
+                    cnfDialog.hasAttachment = true;
+                } else {
+                    cnfDialog.hasAttachment = false;
                 }
 
 
-                if (confirmFlag == false) {
+                // 確認スキップが有効かつ外部ドメインが含まれていない場合、ここでアドインを抜けて送信処理に移る。
+                if (cnfDialog.includesExternalDomain == false) {
                     if (Properties.Settings.Default.EnableConfirmationSkip == true) {
-#if _DEBUG_
-						MessageBox.Show("[Debug] Destination includes only internal domain.\nand EnableConfirmatinSkip is TRUE.\nConfirmation dialog will be skipped.");
-#endif
                         Cancel = false;
                         return;
-                    } else {
-#if _DEBUG_
-						MessageBox.Show("[Debug] Destination includes only internal domain.\nbut EnableConfirmatinSkip is FALSE.\nConfirmation dialog will be shown.");
-#endif
                     }
+                }
+
+
+                // 「社内ドメイン」「既知のドメイン」情報を元にリスト内のドメインへ会社名を付与する。
+                if (Properties.Settings.Default.InternalDomainList.Count != 0 &&
+                    Properties.Settings.Default.KnownDomainList.Count != 0) {
+
+                    cnfDialog.ToDomainList = ConvertKnownDomains(cnfDialog.ToDomainList);
+                    cnfDialog.CcDomainList = ConvertKnownDomains(cnfDialog.CcDomainList);
+                    cnfDialog.BccDomainList = ConvertKnownDomains(cnfDialog.BccDomainList);
                 } else {
-#if _DEBUG_
-					MessageBox.Show("[Debug] Destination includes external domain.\nConfirmation dialog will be shown.");
-#endif
-                }
-
-
-                cnfDialog.ToDomainList = ConvertKnownDomains(cnfDialog.ToDomainList);
-                cnfDialog.CcDomainList = ConvertKnownDomains(cnfDialog.CcDomainList);
-                cnfDialog.BccDomainList = ConvertKnownDomains(cnfDialog.BccDomainList);
-
-
-                if (Properties.Settings.Default.InternalDomainList.Count == 0) {
-                    MessageBox.Show("内部ドメインが登録されていません。右上の「歯車」ボタンからインポートしてください。");
-                }
-                if (Properties.Settings.Default.KnownDomainList.Count == 0) {
-                    MessageBox.Show("既知のドメインが登録されていません。右上の「歯車」ボタンからインポートしてください。");
+                    // 「社内ドメイン」「既知のドメイン」が空の場合は警告を表示し、ドメインに関する処理は行わない。
+                    if (Properties.Settings.Default.InternalDomainList.Count == 0) {
+                        MessageBox.Show("内部ドメインが登録されていません。右上の「歯車」ボタンからインポートしてください。");
+                    }
+                    if (Properties.Settings.Default.KnownDomainList.Count == 0) {
+                        MessageBox.Show("既知のドメインが登録されていません。右上の「歯車」ボタンからインポートしてください。");
+                    }
                 }
 
                 // 確認用ダイアログ（confirmDialog.cs）を表示する。
@@ -131,19 +121,7 @@ namespace MailDestErrPrevention
                 } else {
                     Cancel = true;
                 }
-            }   //Item.GetType() is Outlook.MailItem
-                /*			else if (Item.GetType() is Outlook.AppointmentItem)
-							{
-								Outlook.AppointmentItem CurrentMail = Item as Outlook.AppointmentItem;
-
-
-								return;
-							}   //Item.GetType() is Outlook.AppointmentItem
-							else
-							{
-								return;
-							}*/
-
+            }   
         }
 
 
@@ -161,12 +139,6 @@ namespace MailDestErrPrevention
             if (currentAddress.Contains('@') == true) {
                 // Recipient.Address is judged to be a plain e-mail address because it contains '@'.
                 // No additional process is needed.
-#if _DEBUG_
-				messageString.AppendLine("Succeeded to get Address from a non-Exchange address");
-				messageString.AppendLine("currentAddress:");
-				messageString.AppendLine(currentAddress);
-				MessageBox.Show(messageString.ToString());
-#endif
             } else {
                 // Recipient.Address does not contain '@'.
                 // This Recipient is judged to be a Microsoft Exchange account.
@@ -188,14 +160,6 @@ namespace MailDestErrPrevention
                         MessageBox.Show(messageString.ToString());
                     }
 
-#if _DEBUG_
-					messageString.AppendLine("Succeeded to get Address from olExchangeUserAddressEntry");
-					messageString.AppendLine("Recipient.Address:");
-					messageString.AppendLine(currentRecipient.Address.ToString());
-					messageString.AppendLine("currentAddress:");
-					messageString.AppendLine(currentAddress);
-					MessageBox.Show(messageString.ToString());
-#endif
                 } else if (currentAddressType == Outlook.OlAddressEntryUserType.olExchangeRemoteUserAddressEntry) {
                     currentExcUser = currentRecipient.AddressEntry.GetExchangeUser();
                     if (currentExcUser == null) {
@@ -211,14 +175,6 @@ namespace MailDestErrPrevention
                         MessageBox.Show(messageString.ToString());
                     }
 
-#if _DEBUG_
-					messageString.AppendLine("Succeeded to get Address from olExchangeRemoteUserAddressEntry");
-					messageString.AppendLine("Recipient.Address:");
-					messageString.AppendLine(currentRecipient.Address.ToString());
-					messageString.AppendLine("currentAddress:");
-					messageString.AppendLine(currentAddress);
-					MessageBox.Show(messageString.ToString());
-#endif
                 } else if (currentAddressType == Outlook.OlAddressEntryUserType.olExchangeDistributionListAddressEntry) {
                     currentExcDistList = currentRecipient.AddressEntry.GetExchangeDistributionList();
                     if (currentExcDistList == null) {
@@ -233,15 +189,6 @@ namespace MailDestErrPrevention
                         messageString.AppendLine("Failed to get PrimarySmtpAddress from olExchangeRemoteUserAddressEntry");
                         MessageBox.Show(messageString.ToString());
                     }
-
-#if _DEBUG_
-					messageString.AppendLine("Succeeded to get Address from olExchangeRemoteUserAddressEntry");
-					messageString.AppendLine("Recipient.Address:");
-					messageString.AppendLine(currentRecipient.Address.ToString());
-					messageString.AppendLine("currentAddress:");
-					messageString.AppendLine(currentAddress);
-					MessageBox.Show(messageString.ToString());
-#endif
                 }
 
 
@@ -275,7 +222,6 @@ namespace MailDestErrPrevention
                         break;
                     }
                 }
-                //Index = Properties.Settings.Default.KnownDomainList[*].IndexOf(currentDomain);
 
                 if ((Index >= 0) && (Index < Properties.Settings.Default.KnownDomainList.Count)) {
                     ReturnString.Append(Properties.Settings.Default.KnownDomainList[Index][1].ToString());
@@ -288,7 +234,6 @@ namespace MailDestErrPrevention
                                 break;
                             }
                         }
-                        //                        Index = Properties.Settings.Default.InternalDomainList[0].IndexOf(currentDomain.ToLower());
 
                         if ((Index >= 0) && (Index < Properties.Settings.Default.InternalDomainList.Count)) {
                             ReturnString.Append(Properties.Settings.Default.InternalDomainList[Index][1].ToString());
